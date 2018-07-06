@@ -73,17 +73,17 @@ import tensorflow as tf
 #     return loss
 #
 #
-# def jaccard_loss(labels, logits, smooth=100., axis=None, name='jaccard_loss'):
-#     with tf.name_scope(name):
-#         logits = tf.nn.sigmoid(logits)
-#
-#         intersection = tf.reduce_sum(labels * logits, axis=axis)
-#         union = tf.reduce_sum(labels, axis=axis) + tf.reduce_sum(logits, axis=axis)
-#
-#         jaccard = (intersection + smooth) / (union - intersection + smooth)
-#         loss = (1 - jaccard) * smooth
-#
-#         return loss
+def jaccard_loss(labels, logits, smooth=100., axis=None, name='jaccard_loss'):
+    with tf.name_scope(name):
+        logits = tf.nn.softmax(logits)
+
+        intersection = tf.reduce_sum(labels * logits, axis=axis)
+        union = tf.reduce_sum(labels, axis=axis) + tf.reduce_sum(logits, axis=axis)
+
+        jaccard = (intersection + smooth) / (union - intersection + smooth)
+        loss = (1 - jaccard) * smooth
+
+        return loss
 
 
 def dice_loss(labels, logits, smooth=1., axis=None, name='dice_loss'):
@@ -101,7 +101,8 @@ def dice_loss(labels, logits, smooth=1., axis=None, name='dice_loss'):
 
 def segmentation_loss(labels, logits, name='segmentation_loss'):
     with tf.name_scope(name):
-        loss = dice_loss(labels, logits, axis=[1, 2])
+        # loss = dice_loss(labels, logits, axis=[1, 2])
+        loss = jaccard_loss(labels, logits, axis=[1, 2])
         loss = tf.reduce_mean(loss)
 
         return loss
