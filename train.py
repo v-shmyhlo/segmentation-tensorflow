@@ -35,7 +35,7 @@ def model_fn(features, labels, mode, params):
 
 
 def input_fn(params):
-    ds = build_dataset(params['data_loader']).batch(4).prefetch(1)
+    ds = build_dataset(params['data_loader']).batch(8).prefetch(1)
     features, labels = ds.make_one_shot_iterator().get_next()
 
     return features, labels
@@ -45,9 +45,9 @@ def main():
     EPOCHS = 1000
 
     config = tf.estimator.RunConfig(
-        model_dir='./tf_log')
-    # save_checkpoints_steps=LOG_INTERVAL,
-    # save_summary_steps=LOG_INTERVAL)
+        model_dir='./tf_log',
+        # save_checkpoints_steps=LOG_INTERVAL,
+        save_summary_steps=1000)
 
     estimator = tf.estimator.Estimator(
         model_fn=model_fn,
