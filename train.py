@@ -35,7 +35,7 @@ def model_fn(features, labels, mode, params):
 
 
 def input_fn(params):
-    ds = build_dataset(params['data_loader']).batch(8).prefetch(1)
+    ds = build_dataset(params['data_loader']).batch(params['batch_size']).prefetch(1)
     features, labels = ds.make_one_shot_iterator().get_next()
 
     return features, labels
@@ -43,6 +43,7 @@ def input_fn(params):
 
 def main():
     EPOCHS = 1000
+    BATCH_SIZE = 8
 
     config = tf.estimator.RunConfig(
         model_dir='./tf_log',
@@ -52,7 +53,8 @@ def main():
     estimator = tf.estimator.Estimator(
         model_fn=model_fn,
         params={
-            'data_loader': Shapes('./shapes-dataset', 1024, (224, 224))
+            'data_loader': Shapes('./shapes-dataset', BATCH_SIZE * 100, (224, 224)),
+            'batch_size': BATCH_SIZE
         },
         config=config)
 
