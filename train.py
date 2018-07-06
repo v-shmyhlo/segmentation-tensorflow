@@ -40,7 +40,10 @@ def model_fn(features, labels, mode, params):
 
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.AdamOptimizer(params['learning_rate'])
-        train_step = optimizer.minimize(loss, global_step=global_step)
+
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        with tf.control_dependencies(update_ops):
+            train_step = optimizer.minimize(loss, global_step=global_step)
 
         return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_step)
 
