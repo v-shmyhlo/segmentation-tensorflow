@@ -61,7 +61,7 @@ def model_fn(features, labels, mode, params, config):
         summary_hook = tf.train.SummarySaverHook(
             save_steps=10,
             # save_secs=60,
-            output_dir=os.path.join(config.model_dir, 'summary'),
+            output_dir=os.path.join(config.model_dir, 'eval'),
             summary_op=tf.summary.merge_all())
 
         return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics, evaluation_hooks=[summary_hook])
