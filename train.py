@@ -12,18 +12,24 @@ def model_fn(features, labels, mode, params):
     net = unet.Unet(num_classes=params['data_loader'].num_classes + 1)
     features['image'] = tf.zeros((1, 224, 224, 3))
     logits = net(features['image'], training=training)
+    predictions = tf.argmax(logits, -1)
     loss = losses.segmentation_loss(labels=labels['mask'], logits=logits)
 
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.AdamOptimizer()
         train_step = optimizer.minimize(loss, global_step=global_step)
+
         return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_step)
 
     if mode == tf.estimator.ModeKeys.EVAL:
         tf.summary.image('image', features['image'])
-        tf.summary.image('mask', tf.argmax(features['mask'], -1))
 
-        metrics = {}
+        mask = tf.argmax(features['mask'], -1)
+        tf.summary.image('mask', mask)
+
+        metrics = {'iou': tf.metrics.mean_iou(
+            labels=mask, predictions=predictions, num_classes=params['data_loader'].num_classes + 1)}
+
         return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
 
 
@@ -39,6 +45,8 @@ def main():
 
     config = tf.estimator.RunConfig(
         model_dir='./tf_log')
+    # save_checkpoints_steps=LOG_INTERVAL,
+    # save_summary_steps=LOG_INTERVAL)
 
     estimator = tf.estimator.Estimator(
         model_fn=model_fn,
