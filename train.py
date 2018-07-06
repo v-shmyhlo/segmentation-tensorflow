@@ -25,7 +25,6 @@ def model_fn(features, labels, mode, params):
 
     net = unet.Unet(num_classes=params['data_loader'].num_classes + 1)
     logits = net(features['image'], training=training)
-    predictions = tf.argmax(logits, -1)
     loss = losses.segmentation_loss(labels=labels['mask'], logits=logits)
 
     if mode == tf.estimator.ModeKeys.TRAIN:
@@ -36,6 +35,7 @@ def model_fn(features, labels, mode, params):
 
     if mode == tf.estimator.ModeKeys.EVAL:
         mask = tf.argmax(labels['mask'], -1)
+        predictions = tf.argmax(logits, -1)
 
         metrics = {'iou': tf.metrics.mean_iou(
             labels=mask, predictions=predictions, num_classes=params['data_loader'].num_classes + 1)}
@@ -43,7 +43,7 @@ def model_fn(features, labels, mode, params):
         build_summary(features['image'], labels['mask'], logits)
 
         summary_hook = tf.train.SummarySaverHook(
-            save_steps=10,
+            save_steps=2,
             # save_secs=60,
             # output_dir=self.job_dir + "/eval_core",
             summary_op=tf.summary.merge_all())
