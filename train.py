@@ -5,6 +5,8 @@ from data_loaders.shapes import Shapes
 from dataset import build_dataset
 
 
+# TODO: regularization, initialization
+
 def model_fn(features, labels, mode, params):
     global_step = tf.train.get_or_create_global_step()
     training = mode == tf.estimator.ModeKeys.TRAIN
@@ -23,7 +25,7 @@ def model_fn(features, labels, mode, params):
     if mode == tf.estimator.ModeKeys.EVAL:
         tf.summary.image('image', features['image'])
 
-        mask = tf.argmax(features['mask'], -1)
+        mask = tf.argmax(labels['mask'], -1)
         tf.summary.image('mask', mask)
 
         metrics = {'iou': tf.metrics.mean_iou(
