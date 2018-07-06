@@ -10,7 +10,6 @@ def model_fn(features, labels, mode, params):
     training = mode == tf.estimator.ModeKeys.TRAIN
 
     net = unet.Unet(num_classes=params['data_loader'].num_classes + 1)
-    features['image'] = tf.zeros((1, 224, 224, 3))
     logits = net(features['image'], training=training)
     predictions = tf.argmax(logits, -1)
     loss = losses.segmentation_loss(labels=labels['mask'], logits=logits)
