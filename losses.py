@@ -102,6 +102,7 @@ def dice_loss(labels, logits, smooth=1., axis=None, name='dice_loss'):
 def segmentation_loss(labels, logits, name='segmentation_loss'):
     with tf.name_scope(name):
         loss = dice_loss(labels, logits, axis=[1, 2])
+        loss = tf.reduce_mean(loss)
 
         return loss
 
