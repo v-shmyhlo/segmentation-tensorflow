@@ -108,8 +108,8 @@ def segmentation_loss(labels, logits, name='segmentation_loss'):
         dice = dice_loss(labels, logits, axis=[1, 2])
         losses.append(dice)
 
-        ce = balanced_softmax_cross_entropy_with_logits(labels, logits, axis=[1, 2])
-        losses.append(ce)
+        # ce = balanced_softmax_cross_entropy_with_logits(labels, logits, axis=[1, 2])
+        # losses.append(ce)
 
         loss = sum(tf.reduce_mean(l) for l in losses)
 
