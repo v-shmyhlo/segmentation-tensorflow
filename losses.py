@@ -86,14 +86,14 @@ def segmentation_loss(labels, logits, losses, name='segmentation_loss'):
             'jaccard': jaccard_loss
         }
 
-        fg_mask = tf.not_equal(tf.argmax(labels, -1), 0)
-        focal = focal_sigmoid_cross_entropy_with_logits(labels=labels, logits=logits)
-        num_fg = tf.reduce_sum(tf.to_float(fg_mask))
-        focal = tf.reduce_sum(focal) / tf.maximum(num_fg, 1.0)
-        losses = [focal]
+        # fg_mask = tf.not_equal(tf.argmax(labels, -1), 0)
+        # focal = focal_sigmoid_cross_entropy_with_logits(labels=labels, logits=logits)
+        # num_fg = tf.reduce_sum(tf.to_float(fg_mask))
+        # focal = tf.reduce_sum(focal) / tf.maximum(num_fg, 1.0)
+        # losses = [focal]
 
-        # losses = [name_to_function[l] for l in losses]
-        # losses = [l(labels=labels, logits=logits, axis=[1, 2]) for l in losses]
+        losses = [name_to_function[l] for l in losses]
+        losses = [l(labels=labels, logits=logits, axis=[1, 2]) for l in losses]
         loss = sum(tf.reduce_mean(l) for l in losses)
 
         return loss
