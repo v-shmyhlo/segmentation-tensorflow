@@ -4,6 +4,7 @@ import unet
 from data_loaders.shapes import Shapes
 from dataset import build_dataset
 import argparse
+import os
 
 
 def build_summary(image, labels, logits):
@@ -31,7 +32,7 @@ def build_summary(image, labels, logits):
 
 # TODO: regularization, initialization
 
-def model_fn(features, labels, mode, params):
+def model_fn(features, labels, mode, params, config):
     global_step = tf.train.get_or_create_global_step()
     training = mode == tf.estimator.ModeKeys.TRAIN
 
@@ -48,7 +49,7 @@ def model_fn(features, labels, mode, params):
 
         return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_step)
 
-    if mode == tf.estimator.ModeKeys.EVAL:
+    elif mode == tf.estimator.ModeKeys.EVAL:
         mask = tf.argmax(labels['mask'], -1)
         predictions = tf.argmax(logits, -1)
 
@@ -60,7 +61,7 @@ def model_fn(features, labels, mode, params):
         summary_hook = tf.train.SummarySaverHook(
             save_steps=10,
             # save_secs=60,
-            output_dir='./tf_log/eval/summ',
+            output_dir=os.path.join(config.model_dir, 'summary'),
             summary_op=tf.summary.merge_all())
 
         return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics, evaluation_hooks=[summary_hook])
