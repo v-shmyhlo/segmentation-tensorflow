@@ -53,7 +53,8 @@ class UpsampleMerge(tf.layers.Layer):
 
     def call(self, input, lateral, training):
         input = self._squeeze(input, training=training)
-        input = tf.image.resize_bilinear(input, (input.shape[1] * 2, input.shape[2] * 2), align_corners=True)
+        size = tf.shape(input)[1:3]
+        input = tf.image.resize_bilinear(input, (size[0] * 2, size[1] * 2), align_corners=True)
 
         input = tf.concat([input, lateral], -1)
         input = self._output_conv(input, training=training)
