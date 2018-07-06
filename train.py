@@ -43,7 +43,7 @@ def model_fn(features, labels, mode, params):
         build_summary(features['image'], labels['mask'], logits)
 
         summary_hook = tf.train.SummarySaverHook(
-            save_steps=2,
+            save_steps=10,
             # save_secs=60,
             output_dir='./tf_log/eval/summ',
             summary_op=tf.summary.merge_all())
