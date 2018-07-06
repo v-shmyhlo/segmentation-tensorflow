@@ -39,7 +39,7 @@ def model_fn(features, labels, mode, params):
     loss = losses.segmentation_loss(labels=labels['mask'], logits=logits)
 
     if mode == tf.estimator.ModeKeys.TRAIN:
-        optimizer = tf.train.AdamOptimizer()
+        optimizer = tf.train.AdamOptimizer(params['learning_rate'])
         train_step = optimizer.minimize(loss, global_step=global_step)
 
         return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_step)
@@ -82,7 +82,8 @@ def main():
         model_fn=model_fn,
         params={
             'data_loader': Shapes('./shapes-dataset', BATCH_SIZE * 100, (224, 224)),
-            'batch_size': BATCH_SIZE
+            'batch_size': BATCH_SIZE,
+            'learning_rate': 1e-4
         },
         config=config)
 
