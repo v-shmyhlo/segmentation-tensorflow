@@ -1,39 +1,34 @@
 import tensorflow as tf
 
 
-# import utils
-# from utils import Detection
-#
-#
-# def focal_sigmoid_cross_entropy_with_logits(
-#         labels, logits, focus=2.0, alpha=0.25, eps=1e-7, name='focal_sigmoid_cross_entropy_with_logits'):
-#     with tf.name_scope(name):
-#         alpha = tf.fill(tf.shape(labels), alpha)
-#         prob = tf.nn.sigmoid(logits)
-#         prob_true = tf.where(tf.equal(labels, 1), prob, 1 - prob)
-#         alpha = tf.where(tf.equal(labels, 1), alpha, 1 - alpha)
-#         loss = -alpha * (1 - prob_true)**focus * tf.log(prob_true + eps)
-#
-#         return loss
-#
-#
-# # TODO: check if this is correct
-# def focal_softmax_cross_entropy_with_logits(
-#         labels, logits, focus=2.0, alpha=0.25, eps=1e-7, name='focal_softmax_cross_entropy_with_logits'):
-#     with tf.name_scope(name):
-#         alpha = tf.ones_like(labels) * alpha
-#
-#         prob = tf.nn.softmax(logits, -1)
-#
-#         labels_eq_1 = tf.equal(labels, 1)
-#         a_balance = tf.where(labels_eq_1, alpha, 1 - alpha)
-#         prob_true = tf.where(labels_eq_1, prob, 1 - prob)
-#         modulating_factor = (1.0 - prob_true)**focus
-#
-#         log_prob = tf.log(prob + eps)
-#         loss = -tf.reduce_sum(a_balance * modulating_factor * labels * log_prob, -1)
-#
-#         return loss
+def focal_sigmoid_cross_entropy_with_logits(
+        labels, logits, focus=2.0, alpha=0.25, eps=1e-7, name='focal_sigmoid_cross_entropy_with_logits'):
+    with tf.name_scope(name):
+        alpha = tf.fill(tf.shape(labels), alpha)
+        alpha = tf.where(tf.equal(labels, 1), alpha, 1 - alpha)
+
+        prob = tf.nn.sigmoid(logits)
+        prob_true = tf.where(tf.equal(labels, 1), prob, 1 - prob)
+
+        loss = -alpha * (1 - prob_true)**focus * tf.log(prob_true + eps)
+
+        return loss
+
+
+def focal_softmax_cross_entropy_with_logits(
+        labels, logits, focus=2.0, alpha=0.25, eps=1e-7, name='focal_softmax_cross_entropy_with_logits'):
+    with tf.name_scope(name):
+        alpha = tf.fill(tf.shape(labels), alpha)
+        alpha = tf.where(tf.equal(labels, 1), alpha, 1 - alpha)
+
+        prob = tf.nn.softmax(logits)
+        prob_true = prob
+
+        loss = -alpha * (1 - prob_true)**focus * tf.log(prob_true + eps)
+
+        return loss
+
+
 #
 #
 # # TODO: check bg mask usage and bg weighting calculation
@@ -107,8 +102,14 @@ def segmentation_loss(labels, logits, losses, name='segmentation_loss'):
             'jaccard': jaccard_loss
         }
 
-        losses = [name_to_function[l] for l in losses]
-        losses = [l(labels=labels, logits=logits, axis=[1, 2]) for l in losses]
+        fg_mask = tf.not_equal(tf.argmax(labels, -1), 0)
+        focal = focal_sigmoid_cross_entropy_with_logits(labels=labels, logits=logits)
+        num_fg = tf.reduce_sum(tf.to_float(fg_mask))
+        focal = tf.reduce_sum(focal) / tf.maximum(num_fg, 1.0)
+        losses = [focal]
+
+        # losses = [name_to_function[l] for l in losses]
+        # losses = [l(labels=labels, logits=logits, axis=[1, 2]) for l in losses]
         loss = sum(tf.reduce_mean(l) for l in losses)
 
         return loss
