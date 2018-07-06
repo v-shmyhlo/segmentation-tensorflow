@@ -5,6 +5,18 @@ from data_loaders.shapes import Shapes
 from dataset import build_dataset
 
 
+def build_summary(image, labels, logits):
+    labels = tf.argmax(labels, -1)
+    labels = tf.expand_dims(labels, -1)
+
+    logits = tf.argmax(logits, -1)
+    logits = tf.expand_dims(logits, -1)
+
+    tf.summary.image('image', image)
+    tf.summary.image('mask_true', tf.image.convert_image_dtype(labels, tf.uint8))
+    tf.summary.image('mask_pred', tf.image.convert_image_dtype(logits, tf.uint8))
+
+
 # TODO: regularization, initialization
 
 def model_fn(features, labels, mode, params):
@@ -23,13 +35,12 @@ def model_fn(features, labels, mode, params):
         return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_step)
 
     if mode == tf.estimator.ModeKeys.EVAL:
-        tf.summary.image('image', features['image'])
-
         mask = tf.argmax(labels['mask'], -1)
-        tf.summary.image('mask', tf.image.convert_image_dtype(tf.expand_dims(mask, -1), tf.uint8))
 
         metrics = {'iou': tf.metrics.mean_iou(
             labels=mask, predictions=predictions, num_classes=params['data_loader'].num_classes + 1)}
+
+        build_summary(features['image'], labels['mask'], logits)
 
         summary_hook = tf.train.SummarySaverHook(
             save_steps=10,
