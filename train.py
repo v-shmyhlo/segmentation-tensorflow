@@ -47,7 +47,7 @@ def main():
     config = tf.estimator.RunConfig(
         model_dir='./tf_log',
         # save_checkpoints_steps=LOG_INTERVAL,
-        save_summary_steps=1000)
+        save_summary_steps=100)
 
     estimator = tf.estimator.Estimator(
         model_fn=model_fn,
