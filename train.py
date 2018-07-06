@@ -6,15 +6,26 @@ from dataset import build_dataset
 
 
 def build_summary(image, labels, logits):
-    labels = tf.argmax(labels, -1)
-    labels = tf.expand_dims(labels, -1)
+    colors = tf.constant([
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+    ], dtype=tf.float32)
+    colors = tf.reshape(colors, (1, 1, 1, 4, 3))
 
-    logits = tf.argmax(logits, -1)
-    logits = tf.expand_dims(logits, -1)
+    labels = tf.expand_dims(labels, -1)
+    logits = tf.expand_dims(tf.nn.softmax(logits), -1)
+
+    labels *= colors
+    logits *= colors
+
+    labels = tf.reduce_sum(labels, -2)
+    logits = tf.reduce_sum(logits, -2)
 
     tf.summary.image('image', image)
-    tf.summary.image('mask_true', labels / tf.reduce_max(labels))
-    tf.summary.image('mask_pred', logits / tf.reduce_max(logits))
+    tf.summary.image('mask_true', labels)
+    tf.summary.image('mask_pred', logits)
 
 
 # TODO: regularization, initialization
