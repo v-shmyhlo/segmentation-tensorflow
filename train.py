@@ -31,7 +31,12 @@ def model_fn(features, labels, mode, params):
         metrics = {'iou': tf.metrics.mean_iou(
             labels=mask, predictions=predictions, num_classes=params['data_loader'].num_classes + 1)}
 
-        return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
+        summary_hook = tf.train.SummarySaverHook(
+            save_steps=10,
+            # output_dir=self.job_dir + "/eval_core",
+            summary_op=tf.summary.merge_all())
+
+        return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics, evaluation_hooks=[summary_hook])
 
 
 def input_fn(params):
