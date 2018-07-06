@@ -83,7 +83,7 @@ def main():
         params={
             'data_loader': Shapes('./shapes-dataset', BATCH_SIZE * 100, (224, 224)),
             'batch_size': BATCH_SIZE,
-            'learning_rate': 1e-4
+            'learning_rate': 1e-3
         },
         config=config)
 
