@@ -78,6 +78,7 @@ def build_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--experiment', type=str, required=True)
     parser.add_argument('--losses', type=str, required=True, nargs='+')
+    parser.add_argument('--learning-rate', type=float, default=1e-3)
 
     return parser
 
@@ -98,7 +99,7 @@ def main():
         params={
             'data_loader': Shapes('./shapes-dataset', BATCH_SIZE * 100, (224, 224)),
             'batch_size': BATCH_SIZE,
-            'learning_rate': 1e-3,
+            'learning_rate': args.learning_rate,
             'losses': args.losses
 
         },
