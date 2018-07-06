@@ -79,13 +79,13 @@ def build_parser():
     parser.add_argument('--experiment', type=str, required=True)
     parser.add_argument('--losses', type=str, required=True, nargs='+')
     parser.add_argument('--learning-rate', type=float, default=1e-3)
+    parser.add_argument('--batch-size', type=int, default=32)
 
     return parser
 
 
 def main():
     EPOCHS = 1000
-    BATCH_SIZE = 32
 
     args = build_parser().parse_args()
 
@@ -97,8 +97,8 @@ def main():
     estimator = tf.estimator.Estimator(
         model_fn=model_fn,
         params={
-            'data_loader': Shapes('./shapes-dataset', BATCH_SIZE * 100, (224, 224)),
-            'batch_size': BATCH_SIZE,
+            'data_loader': Shapes('./shapes-dataset', args.batch_size * 100, (224, 224)),
+            'batch_size': args.batch_size,
             'learning_rate': args.learning_rate,
             'losses': args.losses
 
