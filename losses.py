@@ -108,25 +108,25 @@ def segmentation_loss(labels, logits, name='segmentation_loss'):
         dice = dice_loss(labels, logits, axis=[1, 2])
         losses.append(dice)
 
-        fg_mask = tf.not_equal(tf.argmax(labels, -1), 0)
-        ce = balanced_softmax_cross_entropy_with_logits(labels, logits, fg_mask)
+        ce = balanced_softmax_cross_entropy_with_logits(labels, logits, axis=[1, 2])
         losses.append(ce)
 
         loss = sum(tf.reduce_mean(l) for l in losses)
-       
+
         return loss
 
 
 def balanced_softmax_cross_entropy_with_logits(
-        labels, logits, fg_mask, name='balanced_sigmoid_cross_entropy_with_logits'):
+        labels, logits, axis=None, name='balanced_sigmoid_cross_entropy_with_logits'):
     with tf.name_scope(name):
-        num_positive = tf.reduce_sum(tf.to_float(fg_mask))
-        num_negative = tf.reduce_sum(1. - tf.to_float(fg_mask))
+        fg_mask = tf.not_equal(tf.argmax(labels, -1), 0)
+
+        num_positive = tf.reduce_sum(tf.to_float(fg_mask), axis=axis, keep_dims=True)
+        num_negative = tf.reduce_sum(1. - tf.to_float(fg_mask), axis=axis, keep_dims=True)
 
         weight_positive = num_negative / (num_positive + num_negative)
         weight_negative = num_positive / (num_positive + num_negative)
-        ones = tf.ones_like(fg_mask, dtype=tf.float32)
-        weight = tf.where(fg_mask, ones * weight_positive, ones * weight_negative)
+        weight = tf.where(fg_mask, weight_positive, weight_negative)
 
         loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits)
         loss = loss * weight
