@@ -126,7 +126,8 @@ def balanced_softmax_cross_entropy_with_logits(
 
         weight_positive = num_negative / (num_positive + num_negative)
         weight_negative = num_positive / (num_positive + num_negative)
-        weight = tf.where(fg_mask, weight_positive, weight_negative)
+        ones = tf.ones_like(fg_mask, dtype=tf.float32)
+        weight = tf.where(fg_mask, ones * weight_positive, ones * weight_negative)
 
         loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits)
         loss = loss * weight
