@@ -3,6 +3,7 @@ import losses
 import unet
 from data_loaders.shapes import Shapes
 from dataset import build_dataset
+import argparse
 
 
 def build_summary(image, labels, logits):
@@ -72,12 +73,21 @@ def input_fn(params):
     return features, labels
 
 
+def build_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--experiment', type=str, required=True)
+
+    return parser
+
+
 def main():
     EPOCHS = 1000
     BATCH_SIZE = 32
 
+    args = build_parser().parse_args()
+
     config = tf.estimator.RunConfig(
-        model_dir='./tf_log',
+        model_dir=args.experiment,
         # save_checkpoints_steps=LOG_INTERVAL,
         save_summary_steps=100)
 
