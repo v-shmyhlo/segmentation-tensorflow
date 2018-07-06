@@ -15,22 +15,6 @@ def focal_sigmoid_cross_entropy_with_logits(
         return loss
 
 
-def focal_softmax_cross_entropy_with_logits(
-        labels, logits, focus=2.0, alpha=0.25, eps=1e-7, name='focal_softmax_cross_entropy_with_logits'):
-    with tf.name_scope(name):
-        alpha = tf.fill(tf.shape(labels), alpha)
-        alpha = tf.where(tf.equal(labels, 1), alpha, 1 - alpha)
-
-        prob = tf.nn.softmax(logits)
-        prob_true = prob
-
-        loss = -alpha * (1 - prob_true)**focus * tf.log(prob_true + eps)
-
-        return loss
-
-
-#
-#
 # # TODO: check bg mask usage and bg weighting calculation
 # def classification_loss(labels, logits, non_bg_mask, class_loss_kwargs):
 #     losses = []
