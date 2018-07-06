@@ -103,14 +103,12 @@ class Unet(tf.layers.Layer):
         self._num_classes = num_classes
 
     def build(self, input_shape):
-        # self._norm = tf.layers.BatchNormalization()  # TODO:
         self._encoder = MobileNetV2(dropout_rate=0.2, activation=tf.nn.elu)  # TODO:
         self._decoder = Decoder(num_classes=self._num_classes)
 
         super().build(input_shape)
 
     def call(self, input, training):
-        # input = self._norm(input, training=training)
         encoded = self._encoder(input, training=training)
         decoded = self._decoder(encoded, training=training)
 
