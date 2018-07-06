@@ -26,7 +26,7 @@ def model_fn(features, labels, mode, params):
         tf.summary.image('image', features['image'])
 
         mask = tf.argmax(labels['mask'], -1)
-        tf.summary.image('mask', mask)
+        tf.summary.image('mask', tf.image.convert_image_dtype(mask, tf.uint8))
 
         metrics = {'iou': tf.metrics.mean_iou(
             labels=mask, predictions=predictions, num_classes=params['data_loader'].num_classes + 1)}
