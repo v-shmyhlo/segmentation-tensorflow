@@ -99,18 +99,16 @@ def dice_loss(labels, logits, smooth=1., axis=None, name='dice_loss'):
         return loss
 
 
-def segmentation_loss(labels, logits, name='segmentation_loss'):
+def segmentation_loss(labels, logits, losses, name='segmentation_loss'):
     with tf.name_scope(name):
-        losses = []
+        name_to_function = {
+            'bce': balanced_softmax_cross_entropy_with_logits,
+            'dice': dice_loss,
+            'jaccard': jaccard_loss
+        }
 
-        # loss = jaccard_loss(labels, logits, axis=[1, 2])
-
-        dice = dice_loss(labels, logits, axis=[1, 2])
-        losses.append(dice)
-
-        ce = balanced_softmax_cross_entropy_with_logits(labels, logits, axis=[1, 2])
-        losses.append(ce)
-
+        losses = [name_to_function[l] for l in losses]
+        losses = [l(labels=labels, logits=logits, axis=[1, 2]) for l in losses]
         loss = sum(tf.reduce_mean(l) for l in losses)
 
         return loss

@@ -37,7 +37,7 @@ def model_fn(features, labels, mode, params):
 
     net = unet.Unet(num_classes=params['data_loader'].num_classes + 1)
     logits = net(features['image'], training=training)
-    loss = losses.segmentation_loss(labels=labels['mask'], logits=logits)
+    loss = losses.segmentation_loss(labels=labels['mask'], logits=logits, losses=params['losses'])
 
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.AdamOptimizer(params['learning_rate'])
@@ -76,6 +76,7 @@ def input_fn(params):
 def build_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--experiment', type=str, required=True)
+    parser.add_argument('--losses', type=str, required=True, nargs='+')
 
     return parser
 
@@ -96,7 +97,9 @@ def main():
         params={
             'data_loader': Shapes('./shapes-dataset', BATCH_SIZE * 100, (224, 224)),
             'batch_size': BATCH_SIZE,
-            'learning_rate': 1e-3
+            'learning_rate': 1e-3,
+            'losses': args.losses
+
         },
         config=config)
 
