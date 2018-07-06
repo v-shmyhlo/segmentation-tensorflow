@@ -71,7 +71,7 @@ def input_fn(params):
 
 def main():
     EPOCHS = 1000
-    BATCH_SIZE = 8
+    BATCH_SIZE = 32
 
     config = tf.estimator.RunConfig(
         model_dir='./tf_log',
