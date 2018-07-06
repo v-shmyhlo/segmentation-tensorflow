@@ -12,11 +12,9 @@ def build_summary(image, labels, logits):
     logits = tf.argmax(logits, -1)
     logits = tf.expand_dims(logits, -1)
 
-    labels = tf.Print(labels, [tf.reduce_min(labels), tf.reduce_max(labels)])
-
     tf.summary.image('image', image)
-    tf.summary.image('mask_true', tf.image.convert_image_dtype(labels, tf.uint8))
-    tf.summary.image('mask_pred', tf.image.convert_image_dtype(logits, tf.uint8))
+    tf.summary.image('mask_true', labels / tf.reduce_max(labels))
+    tf.summary.image('mask_pred', logits / tf.reduce_max(logits))
 
 
 # TODO: regularization, initialization
