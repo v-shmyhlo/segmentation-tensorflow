@@ -27,7 +27,7 @@ def build_dataset(data_loader, batch_size, shuffle=None):
         lambda: data_loader,
         output_types={'image_file': tf.string, 'segmentation_file': tf.string},
         output_shapes={'image_file': [], 'segmentation_file': []})
-    ds = ds.map(mapper, num_parallel_calls=4)
+    ds = ds.map(mapper, num_parallel_calls=min(os.cpu_count(), 4))
     if shuffle is not None:
         ds = ds.shuffle(shuffle)
     ds = ds.padded_batch(
