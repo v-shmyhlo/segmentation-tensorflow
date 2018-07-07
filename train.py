@@ -78,6 +78,7 @@ def build_parser():
     parser.add_argument('--losses', type=str, required=True, nargs='+')
     parser.add_argument('--learning-rate', type=float, default=1e-3)
     parser.add_argument('--batch-size', type=int, default=32)
+    parser.add_argument('--dataset', type=str, required=True, nargs='+')
 
     return parser
 
@@ -96,7 +97,8 @@ def main():
         model_fn=model_fn,
         params={
             # 'data_loader': Shapes('./shapes-dataset', args.batch_size * 100, (224, 224)),
-            'data_loader': Pascal('/data/Vlad/code/retinanet-tensorflow/data/pascal/VOCdevkit/VOC2012', 'trainval'),
+            # 'data_loader': Pascal('/data/Vlad/code/retinanet-tensorflow/data/pascal/VOCdevkit/VOC2012', 'trainval'),
+            'data_loader': Pascal(*args.dataset),
             'batch_size': args.batch_size,
             'learning_rate': args.learning_rate,
             'losses': args.losses
