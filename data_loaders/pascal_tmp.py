@@ -3,6 +3,8 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import cv2
 from data_loaders.base import Base
+from multiprocessing import Pool
+from tqdm import tqdm
 
 classes = [
     'background', 'aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable',
@@ -74,49 +76,30 @@ class Pascal(Base):
 
         return boxes, class_ids
 
+    def _load_sample(self, image_name):
+        image_file = os.path.join(self._path, 'JPEGImages', image_name + '.jpg')
+
+        segmentation = self._load_segmentation(image_name)
+
+        # boxes, class_ids = self._load_boxes(image_name)
+        return {
+            'image_file': image_file.encode('utf-8'),
+            'segmentation': segmentation,
+            # 'class_ids': boxes,
+            # 'boxes': class_ids
+        }
+
     def __iter__(self):
         with open(os.path.join(self._path, 'ImageSets', 'Segmentation', self._subset + '.txt')) as f:
             lines = f.readlines()
             image_names = [line.strip().split()[0] for line in lines]
 
-        for image_name in image_names:
-            image_file = os.path.join(self._path, 'JPEGImages', image_name + '.jpg')
-
-            segmentation = self._load_segmentation(image_name)
-
-            # boxes, class_ids = self._load_boxes(image_name)
-            yield {
-                'image_file': image_file.encode('utf-8'),
-                'segmentation': segmentation,
-                # 'class_ids': boxes,
-                # 'boxes': class_ids
-            }
+        with Pool(min(os.cpu_count(), 4)) as pool:
+            yield from pool.imap_unordered(self._load_sample, image_names)
 
 
 if __name__ == '__main__':
     dl = Pascal(os.path.expanduser('~/Datasets/pascal/VOCdevkit/VOC2012'), 'trainval')
 
-    for x in dl:
-        image = cv2.imread(x['image_file'])
-
-        import matplotlib.pyplot as plt
-
-        print(x['segmentation'].shape)
-
-        plt.subplot(3, 1, 1)
-        plt.axis('off')
-        plt.imshow(image)
-
-        plt.subplot(3, 1, 2)
-        plt.axis('off')
-        plt.imshow(x['segmentation'])
-
-        plt.subplot(3, 1, 3)
-        plt.axis('off')
-        plt.imshow(image, alpha=0.5)
-        plt.imshow(x['segmentation'], alpha=0.5)
-
-        plt.tight_layout()
-        plt.show()
-
-        break
+    for _ in tqdm(dl):
+        pass
