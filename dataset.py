@@ -5,7 +5,7 @@ from data_loaders.pascal_tmp import Pascal
 import os
 
 
-def build_dataset(data_loader):
+def build_dataset(data_loader, batch_size):
     def mapper(input):
         image = tf.read_file(input['image_file'])
         image = tf.image.decode_png(image, channels=3)
@@ -26,6 +26,8 @@ def build_dataset(data_loader):
         output_types={'image_file': tf.string, 'segmentation': tf.int32},
         output_shapes={'image_file': [], 'segmentation': [None, None]})
     ds = ds.map(mapper)
+    ds = ds.shuffle(256)
+    ds = ds.padded_batch(batch_size, {'image': [None, None, 3], 'segmentation': [None, None, data_loader.num_classes]})
 
     return ds
 

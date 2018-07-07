@@ -70,7 +70,7 @@ def model_fn(features, labels, mode, params, config):
 
 
 def input_fn(params):
-    ds = build_dataset(params['data_loader']).shuffle(256).batch(params['batch_size']).prefetch(4)
+    ds = build_dataset(params['data_loader'], batch_size=params['batch_size']).prefetch(4)
     features, labels = ds.make_one_shot_iterator().get_next()
 
     return features, labels
