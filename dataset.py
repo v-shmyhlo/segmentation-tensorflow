@@ -30,6 +30,7 @@ def build_dataset(data_loader, batch_size):
     ds = ds.padded_batch(
         batch_size,
         ({'image': [None, None, 3]}, {'segmentation': [None, None, data_loader.num_classes]}))
+    ds = ds.prefetch(1)
 
     return ds
 
