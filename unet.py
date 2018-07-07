@@ -82,14 +82,14 @@ class Decoder(tf.layers.Layer):
 
         super().build(input_shape)
 
-    def call(self, input, training):
+    def call(self, input, output_size, training):
         output = input['C5']
 
         output = self._upsample_merge_c5_c4(output, input['C4'], training=training)
         output = self._upsample_merge_c4_c3(output, input['C3'], training=training)
         output = self._upsample_merge_c3_c2(output, input['C2'], training=training)
         output = self._upsample_merge_c2_c1(output, input['C1'], training=training)
-        output = upsample(output, tf.shape(output)[1:3] * 2)
+        output = upsample(output, output_size)
         output = self._output_conv(output)
 
         return output
@@ -109,6 +109,6 @@ class Unet(tf.layers.Layer):
 
     def call(self, input, training):
         encoded = self._encoder(input, training=training)
-        decoded = self._decoder(encoded, training=training)
+        decoded = self._decoder(encoded, tf.shape(input)[1:3], training=training)
 
         return decoded
