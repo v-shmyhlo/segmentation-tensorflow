@@ -21,9 +21,9 @@ def build_summary(image, labels, logits):
     segmentation_pred = utils.draw_segmentation(pred)
 
     tf.summary.image('image', image)
-    tf.summary.image('segmentation_true', segmentation_true)
-    tf.summary.image('segmentation_prob', segmentation_prob)
-    tf.summary.image('segmentation_pred', segmentation_pred)
+    tf.summary.image('segmentation_true', segmentation_true, max_outputs=4)
+    tf.summary.image('segmentation_prob', segmentation_prob, max_outputs=4)
+    tf.summary.image('segmentation_pred', segmentation_pred, max_outputs=4)
 
 
 # TODO: regularization, initialization
