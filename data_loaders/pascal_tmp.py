@@ -76,26 +76,29 @@ class Pascal(Base):
 
         return boxes, class_ids
 
-    def _load_sample(self, image_name):
-        image_file = os.path.join(self._path, 'JPEGImages', image_name + '.jpg')
-
-        segmentation = self._load_segmentation(image_name)
-
-        # boxes, class_ids = self._load_boxes(image_name)
-        return {
-            'image_file': image_file.encode('utf-8'),
-            'segmentation': segmentation,
-            # 'class_ids': boxes,
-            # 'boxes': class_ids
-        }
-
     def __iter__(self):
         with open(os.path.join(self._path, 'ImageSets', 'Segmentation', self._subset + '.txt')) as f:
             lines = f.readlines()
             image_names = [line.strip().split()[0] for line in lines]
 
-        with Pool(min(os.cpu_count(), 4)) as pool:
-            yield from pool.imap_unordered(self._load_sample, image_names)
+        if not os.path.exists(os.path.join(self._path, 'SegmentationPreprocessed')):
+            os.mkdir(os.path.join(self._path, 'SegmentationPreprocessed'))
+
+        for image_name in image_names:
+            image_file = os.path.join(self._path, 'JPEGImages', image_name + '.jpg')
+            segmentation_file = os.path.join(self._path, 'SegmentationPreprocessed', image_name + '.jpg')
+
+            if not os.path.exists(segmentation_file):
+                segmentation = self._load_segmentation(image_name)
+                cv2.imwrite(segmentation_file, segmentation)
+
+            # boxes, class_ids = self._load_boxes(image_name)
+            yield {
+                'image_file': image_file.encode('utf-8'),
+                'segmentation_file': segmentation_file.encode('utf-8'),
+                # 'class_ids': boxes,
+                # 'boxes': class_ids
+            }
 
 
 if __name__ == '__main__':
