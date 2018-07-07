@@ -2,9 +2,8 @@ import tensorflow as tf
 from mobilenet_v2 import MobileNetV2
 
 
-def upsample(input, factor):
-    size = tf.shape(input)[1:3]
-    input = tf.image.resize_bilinear(input, (size[0] * factor, size[1] * factor), align_corners=True)
+def upsample(input, size):
+    input = tf.image.resize_bilinear(input, size, align_corners=True)
 
     return input
 
@@ -60,7 +59,7 @@ class UpsampleMerge(tf.layers.Layer):
 
     def call(self, input, lateral, training):
         input = self._squeeze(input, training=training)
-        input = upsample(input, 2)
+        input = upsample(input, tf.shape(lateral)[1:3])
 
         input = tf.concat([input, lateral], -1)
         input = self._output_conv(input, training=training)
@@ -90,7 +89,7 @@ class Decoder(tf.layers.Layer):
         output = self._upsample_merge_c4_c3(output, input['C3'], training=training)
         output = self._upsample_merge_c3_c2(output, input['C2'], training=training)
         output = self._upsample_merge_c2_c1(output, input['C1'], training=training)
-        output = upsample(output, 2)
+        output = upsample(output, tf.shape(output)[1:3] * 2)
         output = self._output_conv(output)
 
         return output
