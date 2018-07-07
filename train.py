@@ -111,6 +111,7 @@ def main():
         config=config)
 
     for epoch in range(EPOCHS):
+        print('epoch {}'.format(epoch))
         estimator.train(input_fn)
         estimator.evaluate(input_fn, steps=10)
 
