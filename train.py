@@ -13,11 +13,16 @@ from data_loaders.pascal_tmp import Pascal
 # TODO: check num_classes usage
 
 def build_summary(image, labels, logits):
+    prob = tf.nn.softmax(logits)
+    pred = tf.one_hot(tf.argmax(prob, -1), prob.shape[-1])
+
     segmentation_true = utils.draw_segmentation(labels)
-    segmentation_pred = utils.draw_segmentation(tf.nn.softmax(logits))
+    segmentation_prob = utils.draw_segmentation(prob)
+    segmentation_pred = utils.draw_segmentation(pred)
 
     tf.summary.image('image', image)
     tf.summary.image('segmentation_true', segmentation_true)
+    tf.summary.image('segmentation_prob', segmentation_prob)
     tf.summary.image('segmentation_pred', segmentation_pred)
 
 
