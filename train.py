@@ -97,12 +97,17 @@ def main():
         # save_checkpoints_steps=LOG_INTERVAL,
         save_summary_steps=100)
 
+    if args.dataset[0] == 'pascal':
+        data_loader = Pascal(*args.dataset[1:])
+    elif args.dataset[0] == 'shapes':
+        data_loader = Shapes(*args.dataset[1:], args.batch_size * 100, (224, 224))
+    else:
+        raise AssertionError('invalid dataset {}'.format(args.dataset))
+
     estimator = tf.estimator.Estimator(
         model_fn=model_fn,
         params={
-            # 'data_loader': Shapes('./shapes-dataset', args.batch_size * 100, (224, 224)),
-            # 'data_loader': Pascal('/data/Vlad/code/retinanet-tensorflow/data/pascal/VOCdevkit/VOC2012', 'trainval'),
-            'data_loader': Pascal(*args.dataset),
+            'data_loader': data_loader,
             'batch_size': args.batch_size,
             'learning_rate': args.learning_rate,
             'losses': args.losses
