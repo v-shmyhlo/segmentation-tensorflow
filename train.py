@@ -38,6 +38,7 @@ def model_fn(features, labels, mode, params, config):
         with tf.control_dependencies(update_ops):
             train_step = optimizer.minimize(loss, global_step=global_step)
 
+        build_summary(features['image'], labels['segmentation'], logits)  # TODO: refactor
         summary_hook = tf.train.SummarySaverHook(
             save_steps=100,
             # save_secs=60,
