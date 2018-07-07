@@ -48,40 +48,15 @@ class ConvBNRelu(tf.layers.Layer):
         return input
 
 
-# class UpsampleMerge(tf.layers.Layer):
-#     def __init__(self, filters, name='upsample_merge'):
-#         super().__init__(name=name)
-#
-#         self._filters = filters
-#
-#     def build(self, input_shape):
-#         self._squeeze = ConvBNRelu(self._filters)
-#         self._output_conv = ConvBNRelu(self._filters)
-#
-#         super().build(input_shape)
-#
-#     def call(self, input, lateral, training):
-#         input = self._squeeze(input, training=training)
-#         input = upsample(input, tf.shape(lateral)[1:3])
-#
-#         input = tf.concat([input, lateral], -1)
-#         input = self._output_conv(input, training=training)
-#
-#         return input
-
 class UpsampleMerge(tf.layers.Layer):
     def __init__(self, filters, name='upsample_merge'):
-        assert filters % 4 == 0
-
         super().__init__(name=name)
 
         self._filters = filters
 
     def build(self, input_shape):
         self._squeeze = ConvBNRelu(self._filters)
-        self._output_conv = [tf.layers.Conv2D(self._filters // 4, 3, dilation_rate=i, padding='same', use_bias=False)
-                             for i in [1, 2, 4, 8]]
-        self._output_bn = tf.layers.BatchNormalization()
+        self._output_conv = ConvBNRelu(self._filters)
 
         super().build(input_shape)
 
@@ -90,12 +65,38 @@ class UpsampleMerge(tf.layers.Layer):
         input = upsample(input, tf.shape(lateral)[1:3])
 
         input = tf.concat([input, lateral], -1)
-        input = [l(input) for l in self._output_conv]
-        input = tf.concat(input, -1)
-        input = self._output_bn(input, training=training)
-        input = tf.nn.elu(input)
+        input = self._output_conv(input, training=training)
 
         return input
+
+
+# class UpsampleMerge(tf.layers.Layer):
+#     def __init__(self, filters, name='upsample_merge'):
+#         assert filters % 4 == 0
+#
+#         super().__init__(name=name)
+#
+#         self._filters = filters
+#
+#     def build(self, input_shape):
+#         self._squeeze = ConvBNRelu(self._filters)
+#         self._output_conv = [tf.layers.Conv2D(self._filters // 4, 3, dilation_rate=i, padding='same', use_bias=False)
+#                              for i in [1, 2, 4, 8]]
+#         self._output_bn = tf.layers.BatchNormalization()
+#
+#         super().build(input_shape)
+#
+#     def call(self, input, lateral, training):
+#         input = self._squeeze(input, training=training)
+#         input = upsample(input, tf.shape(lateral)[1:3])
+#
+#         input = tf.concat([input, lateral], -1)
+#         input = [l(input) for l in self._output_conv]
+#         input = tf.concat(input, -1)
+#         input = self._output_bn(input, training=training)
+#         input = tf.nn.elu(input)
+#
+#         return input
 
 
 class Decoder(tf.layers.Layer):
