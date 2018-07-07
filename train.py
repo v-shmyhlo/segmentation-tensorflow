@@ -5,29 +5,20 @@ from data_loaders.shapes import Shapes
 from dataset import build_dataset
 import argparse
 import os
+import utils
+from data_loaders.pascal_tmp import Pascal
 
+
+# TODO: rename logits after softmax to prob
+# TODO: check num_classes usage
 
 def build_summary(image, labels, logits):
-    colors = tf.constant([
-        [0, 0, 0],
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1],
-    ], dtype=tf.float32)
-    colors = tf.reshape(colors, (1, 1, 1, 4, 3))
-
-    labels = tf.expand_dims(labels, -1)
-    logits = tf.expand_dims(tf.nn.softmax(logits), -1)
-
-    labels *= colors
-    logits *= colors
-
-    labels = tf.reduce_sum(labels, -2)
-    logits = tf.reduce_sum(logits, -2)
+    segmentation_true = utils.draw_segmentation(labels)
+    segmentation_pred = utils.draw_segmentation(tf.nn.softmax(logits))
 
     tf.summary.image('image', image)
-    tf.summary.image('mask_true', labels)
-    tf.summary.image('mask_pred', logits)
+    tf.summary.image('segmentation_true', segmentation_true)
+    tf.summary.image('segmentation_pred', segmentation_pred)
 
 
 # TODO: regularization, initialization
@@ -36,9 +27,9 @@ def model_fn(features, labels, mode, params, config):
     global_step = tf.train.get_or_create_global_step()
     training = mode == tf.estimator.ModeKeys.TRAIN
 
-    net = unet.Unet(num_classes=params['data_loader'].num_classes + 1)
+    net = unet.Unet(num_classes=params['data_loader'].num_classes)
     logits = net(features['image'], training=training)
-    loss = losses.segmentation_loss(labels=labels['mask'], logits=logits, losses=params['losses'])
+    loss = losses.segmentation_loss(labels=labels['segmentation'], logits=logits, losses=params['losses'])
 
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.AdamOptimizer(params['learning_rate'])
@@ -50,13 +41,13 @@ def model_fn(features, labels, mode, params, config):
         return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_step)
 
     elif mode == tf.estimator.ModeKeys.EVAL:
-        mask = tf.argmax(labels['mask'], -1)
+        mask = tf.argmax(labels['segmentation'], -1)
         predictions = tf.argmax(logits, -1)
 
         metrics = {'iou': tf.metrics.mean_iou(
             labels=mask, predictions=predictions, num_classes=params['data_loader'].num_classes + 1)}
 
-        build_summary(features['image'], labels['mask'], logits)
+        build_summary(features['image'], labels['segmentation'], logits)
 
         summary_hook = tf.train.SummarySaverHook(
             save_steps=10,
@@ -97,7 +88,8 @@ def main():
     estimator = tf.estimator.Estimator(
         model_fn=model_fn,
         params={
-            'data_loader': Shapes('./shapes-dataset', args.batch_size * 100, (224, 224)),
+            # 'data_loader': Shapes('./shapes-dataset', args.batch_size * 100, (224, 224)),
+            'data_loader': Pascal('/data/Vlad/code/retinanet-tensorflow/data/pascal/VOCdevkit/VOC2012', 'trainval'),
             'batch_size': args.batch_size,
             'learning_rate': args.learning_rate,
             'losses': args.losses

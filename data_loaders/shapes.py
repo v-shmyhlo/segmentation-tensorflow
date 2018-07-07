@@ -14,7 +14,7 @@ class Shapes(Base):
         self._path = path
         self._num_samples = num_samples
         self._image_size = image_size
-        self._class_names = ['square', 'triangle', 'circle']
+        self._class_names = ['background', 'square', 'triangle', 'circle']
 
     @property
     def class_names(self):
@@ -42,11 +42,11 @@ class Shapes(Base):
                 # boxes.append([y - s, x - s, y + s, x + s])
                 # class_ids.append(shape)
 
-            mask = np.zeros([*self._image_size], dtype=np.uint8)
+            segmentation = np.zeros([*self._image_size], dtype=np.uint8)
 
             for shape, _, dims in shapes:
-                color = self._class_names.index(shape) + 1
-                mask = draw_shape(mask, shape, dims, color)
+                color = self._class_names.index(shape)
+                segmentation = draw_shape(segmentation, shape, dims, color)
 
             # boxes = np.array(boxes)
             # class_ids = np.array([self._class_names.index(class_id) for class_id in class_ids])
@@ -54,12 +54,13 @@ class Shapes(Base):
             image_file = os.path.join(self._path, '{}.png'.format(i))
             cv2.imwrite(image_file, image)
 
-            mask_file = os.path.join(self._path, '{}-mask.png'.format(i))
-            cv2.imwrite(mask_file, mask)
+            # mask_file = os.path.join(self._path, '{}-mask.png'.format(i))
+            # cv2.imwrite(mask_file, mask)
 
             yield {
                 'image_file': image_file.encode('utf-8'),
-                'mask_file': mask_file.encode('utf-8'),
+                # 'mask_file': mask_file.encode('utf-8'),
+                'segmentation': segmentation
                 # 'class_ids': class_ids,
                 # 'boxes': boxes
             }
