@@ -40,8 +40,7 @@ def model_fn(features, labels, mode, params, config):
 
         build_summary(features['image'], labels['segmentation'], logits)  # TODO: refactor
         summary_hook = tf.train.SummarySaverHook(
-            save_steps=100,
-            # save_secs=60,
+            save_secs=60 * 3,
             output_dir=config.model_dir,
             summary_op=tf.summary.merge_all())
 
