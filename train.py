@@ -38,7 +38,13 @@ def model_fn(features, labels, mode, params, config):
         with tf.control_dependencies(update_ops):
             train_step = optimizer.minimize(loss, global_step=global_step)
 
-        return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_step)
+        summary_hook = tf.train.SummarySaverHook(
+            save_steps=100,
+            # save_secs=60,
+            output_dir=config.model_dir,
+            summary_op=tf.summary.merge_all())
+
+        return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_step, training_hooks=[summary_hook])
 
     elif mode == tf.estimator.ModeKeys.EVAL:
         mask = tf.argmax(labels['segmentation'], -1)
