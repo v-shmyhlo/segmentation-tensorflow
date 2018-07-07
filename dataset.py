@@ -3,6 +3,8 @@ from data_loaders.shapes import Shapes
 import matplotlib.pyplot as plt
 from data_loaders.pascal_tmp import Pascal
 import os
+from itertools import count
+from tqdm import tqdm
 
 
 def build_dataset(data_loader, batch_size, shuffle=None):
@@ -25,7 +27,7 @@ def build_dataset(data_loader, batch_size, shuffle=None):
         lambda: data_loader,
         output_types={'image_file': tf.string, 'segmentation_file': tf.string},
         output_shapes={'image_file': [], 'segmentation_file': []})
-    ds = ds.map(mapper)
+    ds = ds.map(mapper, num_parallel_calls=4)
     if shuffle is not None:
         ds = ds.shuffle(shuffle)
     ds = ds.padded_batch(
@@ -43,7 +45,8 @@ def main():
     features, labels = ds.make_one_shot_iterator().get_next()
 
     with tf.Session() as sess:
-        f, l = sess.run([features, labels])
+        for _ in tqdm(count()):
+            f, l = sess.run([features, labels])
 
         for image, segmentation in zip(f['image'], l['segmentation']):
             plt.figure(figsize=(10, 5))
