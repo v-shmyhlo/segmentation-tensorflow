@@ -31,7 +31,6 @@ def build_dataset(data_loader, batch_size, shuffle=None):
     ds = ds.padded_batch(
         batch_size,
         ({'image': [None, None, 3]}, {'segmentation': [None, None, data_loader.num_classes]}))
-    ds = ds.prefetch(1)
 
     return ds
 
@@ -39,7 +38,7 @@ def build_dataset(data_loader, batch_size, shuffle=None):
 def main():
     # dl = Shapes('./shapes-dataset', 10, (500, 500))
     dl = Pascal(os.path.expanduser('~/Datasets/pascal/VOCdevkit/VOC2012'), 'trainval')
-    ds = build_dataset(dl, batch_size=1)
+    ds = build_dataset(dl, batch_size=4)
 
     features, labels = ds.make_one_shot_iterator().get_next()
 
@@ -47,8 +46,7 @@ def main():
         f, l = sess.run([features, labels])
 
         for image, segmentation in zip(f['image'], l['segmentation']):
-            import numpy as np
-            print(np.unique(segmentation.argmax(-1)))
+            plt.figure(figsize=(10, 5))
             plt.subplot(121)
             plt.imshow(image)
             plt.subplot(122)

@@ -3,7 +3,6 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import cv2
 from data_loaders.base import Base
-from multiprocessing import Pool
 from tqdm import tqdm
 
 classes = [
@@ -47,10 +46,10 @@ class Pascal(Base):
 
     def _load_segmentation(self, image_name):
         segmentation_file = os.path.join(self._path, 'SegmentationClass', image_name + '.png')
-        segmentation = cv2.imread(segmentation_file)
+        segmentation = cv2.imread(segmentation_file, cv2.IMREAD_UNCHANGED)
         segmentation = cv2.cvtColor(segmentation, cv2.COLOR_BGR2RGB)
 
-        segmentation_flat = np.zeros(segmentation.shape[:2])
+        segmentation_flat = np.zeros(segmentation.shape[:2], dtype=np.uint8)
         for c in classes:
             mask = np.all(segmentation == np.reshape(class_to_color[c], (1, 1, 3)), -1)
             segmentation_flat[mask] = classes.index(c)
@@ -86,7 +85,7 @@ class Pascal(Base):
 
         for image_name in image_names:
             image_file = os.path.join(self._path, 'JPEGImages', image_name + '.jpg')
-            segmentation_file = os.path.join(self._path, 'SegmentationPreprocessed', image_name + '.jpg')
+            segmentation_file = os.path.join(self._path, 'SegmentationPreprocessed', image_name + '.png')
 
             if not os.path.exists(segmentation_file):
                 segmentation = self._load_segmentation(image_name)
