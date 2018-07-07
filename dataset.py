@@ -27,7 +27,9 @@ def build_dataset(data_loader, batch_size):
         output_shapes={'image_file': [], 'segmentation': [None, None]})
     ds = ds.map(mapper)
     ds = ds.shuffle(256)
-    ds = ds.padded_batch(batch_size, {'image': [None, None, 3], 'segmentation': [None, None, data_loader.num_classes]})
+    ds = ds.padded_batch(
+        batch_size,
+        ({'image': [None, None, 3]}, {'segmentation': [None, None, data_loader.num_classes]}))
 
     return ds
 
