@@ -18,8 +18,8 @@ def build_dataset(data_loader, batch_size, shuffle=None):
         segmentation = tf.squeeze(segmentation, -1)
         segmentation = tf.one_hot(segmentation, data_loader.num_classes)
 
-        image = tf.image.resize_bilinear(image, (224, 224))
-        segmentation = tf.image.resize_nearest_neighbor(segmentation, (224, 224))
+        image = tf.image.resize_images(image, (224, 224), method=tf.image.ResizeMethod.BILINEAR)
+        segmentation = tf.image.resize_images(segmentation, (224, 224), method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
         features = {'image': image}
         labels = {'segmentation': segmentation}
