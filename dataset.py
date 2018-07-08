@@ -18,6 +18,9 @@ def build_dataset(data_loader, batch_size, shuffle=None):
         segmentation = tf.squeeze(segmentation, -1)
         segmentation = tf.one_hot(segmentation, data_loader.num_classes)
 
+        image = tf.image.resize_bilinear(image, (224, 224))
+        segmentation = tf.image.resize_nearest_neighbor(segmentation, (224, 224))
+
         features = {'image': image}
         labels = {'segmentation': segmentation}
 
@@ -30,9 +33,11 @@ def build_dataset(data_loader, batch_size, shuffle=None):
     ds = ds.map(mapper, num_parallel_calls=min(os.cpu_count(), 4))
     if shuffle is not None:
         ds = ds.shuffle(shuffle)
-    ds = ds.padded_batch(
-        batch_size,
-        ({'image': [None, None, 3]}, {'segmentation': [None, None, data_loader.num_classes]}))
+
+    ds = ds.batch(batch_size)
+    # ds = ds.padded_batch(
+    #     batch_size,
+    #     ({'image': [None, None, 3]}, {'segmentation': [None, None, data_loader.num_classes]}))
 
     return ds
 
